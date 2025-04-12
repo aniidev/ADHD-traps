@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pendulum Waves</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-header">
+            <h1>Pendulum Waves</h1>
+            <div class="score">Alignments: <span id="alignmentCount">0</span></div>
+            <div class="instructions">Watch the pendulums create beautiful wave patterns!</div>
+        </div>
+        
+        <div class="canvas-container">
+            <canvas id="pendulumCanvas"></canvas>
+        </div>
+        
+        <div class="controls">
+            <div class="control-group">
+                <button id="startButton">Start</button>
+                <button id="resetButton">Reset</button>
+            </div>
+            
+            <div class="control-group">
+                <label for="pendulumCount">Pendulums:</label>
+                <input type="range" id="pendulumCount" min="1" max="50" step="1" value="10">
+                <span id="pendulumCountValue">10</span>
+            </div>
+             
+            <div class="control-group">
+                <label for="gravitySlider">Gravity:</label>
+                <input type="range" id="gravitySlider" min="0.1" max="2" step="0.1" value="1">
+                <span id="gravityValue">1.0</span>
+            </div>
+            
+            <div class="control-group">
+                <label for="lengthVariation">Length Variation:</label>
+                <input type="range" id="lengthVariation" min="0" max="200" step="1" value="100">
+                <span id="lengthValue">100</span>
+            </div>
+            
+            <div class="control-group">
+                <button id="soundToggle" class="toggle-btn">Sound: ON</button>
+                <button id="trailToggle" class="toggle-btn">Trails: ON</button>
+            </div>
+        </div>
+    </div>
+    
+    <a href="../../index.html" class="back-link">Back to Game Selection</a>
+    
+    <script src="pendulum.js"></script>
+</body>
+</html> 

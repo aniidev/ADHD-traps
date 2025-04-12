@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Snake Game</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="score-container">
+        <div class="score">Score: <span id="score">0</span></div>
+        <div class="score2">Enemy Score: <span id="score2">0</span></div>
+    </div>
+    <canvas id="gameCanvas"></canvas>
+    
+    <div id="aiStatus">AI MODE OFF</div>
+    <div id="speedStatus">1X SPEED</div>
+    
+    <div class="speed-control">
+        <label for="speedSlider">Speed: <span id="speedValue">1x</span></label>
+        <input type="range" id="speedSlider" min="1" max="4" step="0.1" value="1">
+    </div>
+
+    <div id="startScreen" class="screen">
+        <h1 class="title">1v1 Snake AI</h1>
+        <div class="features">
+            <div class="feature">
+                <div class="feature-icon">🎮</div>
+                <div class="feature-title">Controls</div>
+                <div class="feature-description">WASD or Arrow keys to move</div>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">🤖</div>
+                <div class="feature-title">AI Mode</div>
+                <div class="feature-description">Press 'E' in the game to toggle AI</div>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">⚡</div>
+                <div class="feature-title">Speed</div>
+                <div class="feature-description">Use slider to adjust from 1x to 4x</div>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">🔒</div>
+                <div class="feature-title">Walls</div>
+                <div class="feature-description">Click to toggle walls</div>
+                <label class="switch">
+                    <input type="checkbox" id="wallsToggle">
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+        
+        <button class="button" onclick="startGame()">Play Now</button>
+    </div>
+
+    <div id="gameOverScreen" class="screen">
+        <h2>Game Over!</h2>
+        <p id="resultMessage"></p>
+        <p>Final Score: <span id="finalScore">0</span></p>
+        <p>Enemy Score: <span id="finalEnemyScore">0</span></p>
+        <button class="button" onclick="startGame()">Play Again</button>
+    </div>
+
+    <a href="../../index.html" class="back-link">Back to Game Selection</a>
+
+    <script src="game.js"></script>
+</body>
+</html> 

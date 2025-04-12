@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Game Collection</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="gameSelectionScreen" class="screen">
+        <h1 class="title">Games</h1>
+        <div class="game-cards">
+            <div class="game-card" onclick="location.href='games/snake/index.html'">
+                <div class="game-icon">🐍</div>
+                <h2>1v1 Snake AI</h2>
+                <p>Classic Snake with AI opponent</p>
+            </div>
+            <div class="game-card bounce-card" onclick="location.href='games/bounce/index.html'">
+                <div class="game-icon">⚽</div>
+                <h2>Gravity Bounce</h2>
+                <p>ADHD Ball Game</p>
+            </div>
+            <div class="game-card pendulum-card" onclick="location.href='games/pendulum/index.html'">
+                <div class="game-icon">🔄</div>
+                <h2>Pendulum Waves</h2>
+                <p>Hypnotic physics simulation</p>
+            </div>
+            <div class="game-card particle-card" onclick="location.href='games/particle-flow/index.html'">
+                <div class="game-icon">✨</div>
+                <h2>Particle Flow</h2>
+                <p>Mesmerizing particle simulation</p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Redirect to game selection screen
+        window.onload = function() {
+            document.getElementById('gameSelectionScreen').style.display = 'flex';
+        }
+    </script>
+</body>
+</html>

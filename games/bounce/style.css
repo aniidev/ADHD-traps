@@ -1,0 +1,59 @@
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.button-group {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.slider-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.control-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.control-group label {
+  color: white;
+  width: 80px;
+}
+
+.control-group input[type="range"] {
+  flex: 1;
+}
+
+button {
+  padding: 8px 16px;
+  background-color: #ff00ff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: 'Orbitron', sans-serif;
+  transition: background-color 0.3s;
+}
+
+button:hover {
+  background-color: #cc00cc;
+}
+
+button:active {
+  background-color: #990099;
+}
+
+.graph-container {
+  margin: 20px 0;
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+  padding: 10px;
+}

@@ -1,0 +1,176 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Orbitron', sans-serif;
+  background-color: #000;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+.game-container {
+  text-align: center;
+  max-width: 900px;
+  width: 100%;
+  padding: 20px;
+}
+
+.game-header {
+  margin-bottom: 20px;
+}
+
+h1 {
+  font-size: 2.5rem;
+  margin-bottom: 15px;
+  background: linear-gradient(135deg, #04befe, #4481eb);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.score {
+  font-size: 1.2rem;
+  color: #04befe;
+  margin-bottom: 10px;
+}
+
+.instructions {
+  font-size: 1rem;
+  color: #ccc;
+  margin-bottom: 15px;
+  font-style: italic;
+}
+
+.canvas-container {
+  position: relative;
+  width: 800px;
+  height: 500px;
+  margin: 0 auto 30px;
+  border: 2px solid rgba(4, 190, 254, 0.5);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+#pendulumCanvas {
+  width: 100%;
+  height: 100%;
+  background-color: #000;
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  margin-top: 20px;
+  background-color: rgba(0, 0, 0, 0.5);
+  padding: 20px;
+  border-radius: 10px;
+  border: 1px solid rgba(4, 190, 254, 0.3);
+}
+
+.control-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 400px;
+}
+
+button {
+  background: linear-gradient(135deg, #04befe, #4481eb);
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 100px;
+}
+
+button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 15px rgba(4, 190, 254, 0.5);
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+.toggle-btn {
+  background: linear-gradient(135deg, #04befe, #4481eb);
+  min-width: 120px;
+}
+
+.toggle-btn.off {
+  background: linear-gradient(135deg, #666, #444);
+}
+
+label {
+  color: #fff;
+  min-width: 120px;
+  text-align: right;
+}
+
+input[type="range"] {
+  width: 150px;
+  height: 8px;
+  -webkit-appearance: none;
+  background: linear-gradient(to right, #04befe, #4481eb);
+  border-radius: 5px;
+  outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  background: #fff;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid #04befe;
+  box-shadow: 0 0 5px rgba(4, 190, 254, 0.8);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  background: #fff;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid #04befe;
+  box-shadow: 0 0 5px rgba(4, 190, 254, 0.8);
+}
+
+span {
+  color: #04befe;
+  min-width: 30px;
+  text-align: center;
+}
+
+.back-link {
+  margin-top: 30px;
+  color: #fff;
+  text-decoration: none;
+  font-size: 1rem;
+  border: 1px solid #04befe;
+  padding: 8px 15px;
+  border-radius: 5px;
+  transition: all 0.3s ease;
+}
+
+.back-link:hover {
+  background-color: #04befe;
+  color: #000;
+}
