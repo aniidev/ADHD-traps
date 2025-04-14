@@ -20,11 +20,18 @@ document.addEventListener('DOMContentLoaded', () => {
   let bounceCount = 0;
   let gameOver = false;
   let isNormalMode = true;
+  let isVortexMode = false;
   let balls = [];
   let lastCollisionTime = 0;
   const COLLISION_COOLDOWN = 100; // Cooldown in milliseconds
   const SPAWN_DELAY = 300; // 300ms delay before spawning new ball
   const SPLIT_MODE_GRAVITY_MULTIPLIER = 0.05; // Reduced from 0.2 to 0.05 for much slower movement
+  const VORTEX_STRENGTH = 0.1; // Reduced from 0.2 for more stable orbits
+  const BLACK_HOLE_RADIUS = 20;
+  const ORBITAL_SPEED = 0.05; // Increased for better orbital motion
+  const GRAVITATIONAL_PULL = 0.02; // Reduced for more stable orbits
+  const ORBIT_DECAY = 0.0005; // Rate at which orbits decay
+  const EVENT_HORIZON_RADIUS = 10; // Smaller than black hole radius for visual effect
 
   // Audio setup
   const audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -49,6 +56,24 @@ document.addEventListener('DOMContentLoaded', () => {
   let lastGraphUpdate = 0;
   const GRAPH_UPDATE_INTERVAL = 100; // Update graph every 100ms
   const GRAPH_POINT_WIDTH = 2; // Width of each data point in pixels
+
+  // Add black hole growth variables
+  let blackHoleRadius = BLACK_HOLE_RADIUS;
+  let blackHolePull = GRAVITATIONAL_PULL;
+  const BLACK_HOLE_GROWTH_RATE = 0.5;
+  const BLACK_HOLE_PULL_GROWTH_RATE = 0.001;
+
+  // Add animation variables
+  const SPIRAL_COUNT = 8; // Number of spiral arms
+  const SPIRAL_ROTATION_SPEED = 0.003; // Increased from 0.001 for faster rotation
+  const SPIRAL_CURVE_FACTOR = 0.1; // Reduced from 0.2 for tighter curves
+  let spiralAngle = 0; // Current rotation angle
+
+  // Add star particle variables
+  const STAR_COUNT = 20;
+  const STAR_RADIUS = 1;
+  const STAR_SPEED = 0.002;
+  const stars = [];
 
   // Function to play bounce sound
   function playBounceSound(sizeFactor, velocity) {
@@ -124,7 +149,9 @@ document.addEventListener('DOMContentLoaded', () => {
     spawnTimer: 0,
     canSpawn: true,
     isDeleting: false,
-    deleteProgress: 0
+    deleteProgress: 0,
+    angle: 0, // For vortex mode
+    distance: 0 // For vortex mode
   });
 
   // Circle boundary
@@ -203,17 +230,52 @@ document.addEventListener('DOMContentLoaded', () => {
     graphCtx.fillText(`Time: ${totalTime.toFixed(1)}s`, 5, 15);
   }
 
+  // Initialize star particles
+  function initStars() {
+    stars.length = 0;
+    for (let i = 0; i < STAR_COUNT; i++) {
+      const angle = (Math.PI * 2 * i) / STAR_COUNT;
+      const distance = blackHoleRadius * (1.2 + Math.random() * 0.5);
+      stars.push({
+        angle: angle,
+        distance: distance,
+        speed: STAR_SPEED * (1 + Math.random() * 0.5),
+        opacity: 0.3 + Math.random() * 0.7
+      });
+    }
+  }
+
   // Initialize
   function init() {
-    balls = [createBall(canvas.width / 2, canvas.height / 4)];
-    const ball = balls[0];
-    ball.vx = (Math.random() > 0.5 ? 1 : -1) * (5 + Math.random() * 2);
-    ball.vy = 2;
-    // Store original velocity for speed limiting
-    ball.originalVx = ball.vx;
-    ball.originalVy = ball.vy;
-    ball.gravity = parseFloat(gravitySlider.value);
-    ball.trail = [];
+    // Reset black hole properties
+    blackHoleRadius = BLACK_HOLE_RADIUS;
+    blackHolePull = GRAVITATIONAL_PULL;
+
+    // Initialize stars
+    initStars();
+
+    // Create first ball at the top
+    balls = [createBall(canvas.width / 2, canvas.height / 6)]; // Start higher up
+    const ball1 = balls[0];
+    ball1.vx = (Math.random() > 0.5 ? 1 : -1) * (5 + Math.random() * 2);
+    ball1.vy = 2;
+    ball1.originalVx = ball1.vx;
+    ball1.originalVy = ball1.vy;
+    ball1.gravity = parseFloat(gravitySlider.value);
+    ball1.trail = [];
+
+    // Create second ball at the bottom only in vortex mode
+    if (isVortexMode) {
+      const ball2 = createBall(canvas.width / 2, canvas.height * 0.85); // Start lower down
+      ball2.vx = (Math.random() > 0.5 ? 1 : -1) * (5 + Math.random() * 2);
+      ball2.vy = -2; // Start moving upward
+      ball2.originalVx = ball2.vx;
+      ball2.originalVy = ball2.vy;
+      ball2.gravity = parseFloat(gravitySlider.value);
+      ball2.trail = [];
+      balls.push(ball2);
+    }
+
     bounceCount = 0;
     gameOver = false;
     bounceCountElement.textContent = bounceCount;
@@ -223,7 +285,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Set growth rate based on mode
     if (!isNormalMode) {
-      ball.growthRate = 0;
+      balls.forEach(ball => {
+        ball.growthRate = 0;
+      });
     }
 
     gravitySlider.addEventListener('input', () => {
@@ -245,6 +309,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const DELETE_DELAY = 100; // 100ms delay before starting deletion
 
     let collisionDetected = false;
+
+    // Skip collision checks in vortex mode
+    if (isVortexMode) return false;
 
     for (let i = 0; i < balls.length; i++) {
       for (let j = i + 1; j < balls.length; j++) {
@@ -310,6 +377,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const currentTime = Date.now();
     const DELETE_ANIMATION_DURATION = 300; // 300ms animation duration
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
 
     // Update all balls
     for (let i = balls.length - 1; i >= 0; i--) {
@@ -335,18 +404,77 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
-      // Apply gravity with split mode multiplier
-      const gravityMultiplier = isNormalMode ? 1 : SPLIT_MODE_GRAVITY_MULTIPLIER;
-      ball.vy += ball.gravity * gravityMultiplier;
+      if (isVortexMode) {
+        // Calculate distance and angle from center
+        const dx = ball.x - centerX;
+        const dy = ball.y - centerY;
+        ball.distance = Math.sqrt(dx * dx + dy * dy);
+        ball.angle = Math.atan2(dy, dx);
 
-      // Add a small random movement to prevent getting stuck
-      if (Math.abs(ball.vx) < 0.2) {
-        ball.vx += (Math.random() * 2 - 1) * 0.5;
+        // Check if ball has entered the event horizon
+        if (ball.distance < blackHoleRadius) {
+          // Play black hole sound
+          playPopSound();
+
+          // Increase black hole size and pull
+          blackHoleRadius += BLACK_HOLE_GROWTH_RATE;
+          blackHolePull += BLACK_HOLE_PULL_GROWTH_RATE;
+
+          // Check if black hole has grown too large
+          if (blackHoleRadius >= circle.radius) {
+            endGame();
+            return;
+          }
+
+          // Spawn two new balls at random positions around the circle
+          for (let j = 0; j < 2; j++) {
+            const spawnAngle = Math.random() * Math.PI * 2;
+            const spawnDistance = circle.radius * 0.8;
+            const newBall = createBall(
+              centerX + Math.cos(spawnAngle) * spawnDistance,
+              centerY + Math.sin(spawnAngle) * spawnDistance
+            );
+
+            // Set initial velocity for orbital motion
+            const orbitalSpeed = 3 + Math.random() * 2;
+            newBall.vx = -Math.sin(spawnAngle) * orbitalSpeed;
+            newBall.vy = Math.cos(spawnAngle) * orbitalSpeed;
+            newBall.originalVx = newBall.vx;
+            newBall.originalVy = newBall.vy;
+            newBall.gravity = parseFloat(gravitySlider.value);
+            newBall.trail = [];
+
+            balls.push(newBall);
+          }
+
+          // Remove the original ball
+          balls.splice(i, 1);
+          continue;
+        }
+
+        // Calculate gravitational pull using updated black hole pull
+        const pullStrength = blackHolePull * Math.pow(1 - ball.distance / circle.radius, 2);
+        const pullX = -dx * pullStrength;
+        const pullY = -dy * pullStrength;
+
+        // Calculate orbital velocity (faster when closer)
+        const orbitalVelocity = ORBITAL_SPEED * (1 - ball.distance / circle.radius);
+        const tangentX = -Math.sin(ball.angle) * orbitalVelocity;
+        const tangentY = Math.cos(ball.angle) * orbitalVelocity;
+
+        // Apply forces with momentum preservation and orbit decay
+        ball.vx = (ball.vx * (1 - ORBIT_DECAY) + pullX + tangentX);
+        ball.vy = (ball.vy * (1 - ORBIT_DECAY) + pullY + tangentY);
+
+        // Update position
+        ball.x += ball.vx;
+        ball.y += ball.vy;
+      } else {
+        // Original physics for normal and split modes
+        ball.vy += ball.gravity * (isNormalMode ? 1 : SPLIT_MODE_GRAVITY_MULTIPLIER);
+        ball.x += ball.vx;
+        ball.y += ball.vy;
       }
-
-      // Update position
-      ball.x += ball.vx;
-      ball.y += ball.vy;
 
       // Add position to trail
       ball.trail.push({ x: ball.x, y: ball.y });
@@ -423,10 +551,21 @@ document.addEventListener('DOMContentLoaded', () => {
         ball.vy += (Math.random() - 0.5) * 0.5;
 
         // In split mode, don't increase speed after wall collision
-        if (!isNormalMode) {
+        if (!isNormalMode && !isVortexMode) {
           const currentSpeed = Math.sqrt(ball.vx * ball.vx + ball.vy * ball.vy);
           const originalSpeed = Math.sqrt(ball.originalVx * ball.originalVx + ball.originalVy * ball.originalVy);
           if (currentSpeed > originalSpeed) {
+            const ratio = originalSpeed / currentSpeed;
+            ball.vx *= ratio;
+            ball.vy *= ratio;
+          }
+        }
+
+        // In vortex mode, maintain original speed
+        if (isVortexMode) {
+          const currentSpeed = Math.sqrt(ball.vx * ball.vx + ball.vy * ball.vy);
+          const originalSpeed = Math.sqrt(ball.originalVx * ball.originalVx + ball.originalVy * ball.originalVy);
+          if (currentSpeed !== originalSpeed) {
             const ratio = originalSpeed / currentSpeed;
             ball.vx *= ratio;
             ball.vy *= ratio;
@@ -445,16 +584,18 @@ document.addEventListener('DOMContentLoaded', () => {
         bounceCount++;
         bounceCountElement.textContent = bounceCount;
 
-        // Grow the ball
-        ball.radius += ball.growthRate;
+        // Only grow the ball in normal mode
+        if (isNormalMode) {
+          ball.radius += ball.growthRate;
+        }
 
         // Check if ball has reached maximum size
         if (ball.radius >= ball.maxRadius) {
           endGame();
         }
 
-        // In split mode, spawn a new ball if allowed
-        if (!isNormalMode && ball.canSpawn) {
+        // In split mode (but not vortex mode), spawn a new ball if allowed
+        if (!isNormalMode && !isVortexMode && ball.canSpawn) {
           // Calculate spawn position slightly inside the circle
           const angle = Math.atan2(dy, dx);
           const spawnDistance = circle.radius - ball.radius - 10; // 10 pixels from wall
@@ -505,6 +646,12 @@ document.addEventListener('DOMContentLoaded', () => {
     isRunning = false;
     cancelAnimationFrame(animationId);
 
+    // Clear all balls
+    balls = [];
+
+    // Set black hole to full size
+    blackHoleRadius = circle.radius;
+
     // Play game over sound
     if (isSoundEnabled) {
       const endGameSound = audioContext.createOscillator();
@@ -525,10 +672,10 @@ document.addEventListener('DOMContentLoaded', () => {
       endGameSound.stop(audioContext.currentTime + 1.5);
     }
 
-    // Draw game over message
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // Draw final state
+    draw();
 
+    // Draw game over text
     ctx.font = 'bold 40px Orbitron';
     ctx.fillStyle = '#ff00ff';
     ctx.textAlign = 'center';
@@ -552,6 +699,70 @@ document.addEventListener('DOMContentLoaded', () => {
     ctx.strokeStyle = '#ffffff';
     ctx.lineWidth = 2;
     ctx.stroke();
+
+    // Draw black hole effect if in vortex mode
+    if (isVortexMode) {
+      // Update spiral rotation
+      spiralAngle += SPIRAL_ROTATION_SPEED;
+
+      // Draw spiral effect
+      for (let i = 0; i < SPIRAL_COUNT; i++) {
+        const baseAngle = (i * Math.PI * 2 / SPIRAL_COUNT) + spiralAngle;
+        const gradient = ctx.createLinearGradient(
+          circle.x + Math.cos(baseAngle) * blackHoleRadius,
+          circle.y + Math.sin(baseAngle) * blackHoleRadius,
+          circle.x + Math.cos(baseAngle) * (blackHoleRadius * 1.5), // Reduced from 2 to 1.5
+          circle.y + Math.sin(baseAngle) * (blackHoleRadius * 1.5)  // Reduced from 2 to 1.5
+        );
+        gradient.addColorStop(0, 'rgba(255, 0, 255, 0.7)');
+        gradient.addColorStop(1, 'rgba(102, 0, 204, 0)');
+
+        ctx.beginPath();
+        for (let r = blackHoleRadius; r < blackHoleRadius * 1.5; r += 0.5) { // Reduced range from 2 to 1.5
+          const angle = baseAngle + (r - blackHoleRadius) * SPIRAL_CURVE_FACTOR;
+          const x = circle.x + Math.cos(angle) * r;
+          const y = circle.y + Math.sin(angle) * r;
+
+          if (r === blackHoleRadius) {
+            ctx.moveTo(x, y);
+          } else {
+            ctx.lineTo(x, y);
+          }
+        }
+        ctx.strokeStyle = gradient;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+
+      // Update and draw star particles
+      stars.forEach(star => {
+        // Update star position
+        star.angle += star.speed;
+
+        // Calculate star position
+        const x = circle.x + Math.cos(star.angle) * star.distance;
+        const y = circle.y + Math.sin(star.angle) * star.distance;
+
+        // Draw star
+        ctx.beginPath();
+        ctx.arc(x, y, STAR_RADIUS, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255, 255, 255, ${star.opacity})`;
+        ctx.fill();
+      });
+
+      // Draw the black hole core
+      ctx.beginPath();
+      ctx.arc(circle.x, circle.y, blackHoleRadius, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(0, 0, 0, 1)';
+      ctx.fill();
+
+      // Draw white outline
+      ctx.beginPath();
+      ctx.arc(circle.x, circle.y, blackHoleRadius, 0, Math.PI * 2);
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
 
     // Draw all balls
     balls.forEach(ball => {
@@ -700,11 +911,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Add mode toggle event listener
   modeToggle.addEventListener('click', () => {
-    isNormalMode = !isNormalMode;
-    modeToggle.textContent = isNormalMode ? 'Normal Mode' : 'Split Mode';
-    if (!isRunning) {
-      init();
+    if (isNormalMode) {
+      isNormalMode = false;
+      isVortexMode = false;
+      modeToggle.textContent = 'Mode: Split';
+    } else if (!isVortexMode) {
+      isVortexMode = true;
+      modeToggle.textContent = 'Mode: Vortex';
+    } else {
+      isNormalMode = true;
+      isVortexMode = false;
+      modeToggle.textContent = 'Mode: Normal';
     }
+    init();
   });
 
   // Add event listener for ball size slider
